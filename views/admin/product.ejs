@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .content {
+            margin: 20px;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .editBtn {
+            background-color: #4CAF50;
+            /* Green */
+        }
+
+        .removeBtn {
+            background-color: #f44336;
+            /* Red */
+        }
+
+        #addProduct {
+            background-color: #008CBA;
+            /* Blue */
+        }
+
+        #searchButton {
+            background-color: #4CAF50;
+            /* Green */
+            color: white;
+            padding: 10px 24px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 10%;
+            opacity: 0.9;
+        }
+
+        #searchButton:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <h1>Product List</h1>
+        <button id="addProduct">Add Product</button>
+        <input type="text" id="searchInput" placeholder="Search for products..">
+        <button id="searchButton">Search</button>
+
+        <table id="productTable">
+            <tr>
+                <th>Product Name</th>
+                <th>SKU Code</th>
+                <th>Brand</th>
+                <th>Status</th>
+                <th>Price</th>
+                <th>Discount</th>
+                <th>Price After Discount</th>
+                <th>Action</th>
+            </tr>
+            <!-- Products will be added here -->
+        </table>
+    </div>
+    <script>
+        // Fetch the products from the API
+        fetch('http://localhost:3000/admin/getProducts')
+            .then(response => response.json())
+            .then(data => {
+                // console.log(data._id);
+                // Get the product table
+                var table = document.getElementById('productTable');
+
+                // Loop through the products and add them to the table
+                data.products.forEach(product => {
+                    // console.log(product._id)
+                    var row = table.insertRow(-1);
+                    row.insertCell(0).innerText = product.productName;
+                    row.insertCell(1).innerText = product.skuCode;
+                    row.insertCell(2).innerText = product.brand;
+                    row.insertCell(3).innerText = product.status;
+                    row.insertCell(4).innerText = product.price;
+                    row.insertCell(5).innerText = product.discount + '%';
+                    row.insertCell(6).innerText = product.priceAfterDiscount;
+
+                    // Edit product button
+                    var editBtn = document.createElement('button');
+                    editBtn.innerText = 'Edit';
+                    editBtn.className = 'editBtn';
+                    editBtn.addEventListener('click', function () {
+                        window.location.href = "http://localhost:3000/admin/updateProduct/" + product._id;
+                    });
+
+                    var removeBtn = document.createElement('button');
+                    removeBtn.innerText = 'Remove';
+                    removeBtn.className = 'removeBtn';
+                    removeBtn.addEventListener('click', async function () {
+                        try {
+                            let response = await fetch('/admin/delete-product/' + product._id, {
+                                method: 'DELETE'
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+
+                            const out = await response.json();
+                            // console.log(out);
+                            if (out.message === 'Product deleted successfully') {
+                                // alert('Product removed successfully');
+                                window.location.replace('http://localhost:3000/admin/get-all-products');
+                            }
+                            else {
+                                alert('Error Occurred');
+                            }
+                        } catch (err) {
+                            console.log(err);
+                            alert('Error Occurred');
+                        }
+                    });
+
+
+
+                    // Action cell
+                    var actionCell = row.insertCell(7);
+                    actionCell.appendChild(editBtn);
+                    actionCell.appendChild(removeBtn);
+                })
+                // Add product button functionality
+                document.getElementById('addProduct').addEventListener('click', function () {
+                    window.location.href = "http://localhost:3000/admin/addProduct";
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        document.getElementById('searchButton').addEventListener('click', function () {
+            // Get the search input value
+            var searchValue = document.getElementById('searchInput').value.toLowerCase();
+
+            // Get the product table rows
+            var tableRows = document.getElementById('productTable').rows;
+
+            // Loop through the table rows
+            for (var i = 1; i < tableRows.length; i++) {
+                // Get the product name, brand, and status cells
+                var productNameCell = tableRows[i].cells[0];
+                var brandCell = tableRows[i].cells[2];
+                var statusCell = tableRows[i].cells[3];
+
+                // Check if the product name, brand, or status includes the search value
+                if (productNameCell.innerText.toLowerCase().includes(searchValue) ||
+                    brandCell.innerText.toLowerCase().includes(searchValue) ||
+                    statusCell.innerText.toLowerCase().includes(searchValue)) {
+                    // If it does, show the row
+                    tableRows[i].style.display = "";
+                } else {
+                    // If it doesn't, hide the row
+                    tableRows[i].style.display = "none";
+                }
+            }
+        });
+
+
+
+    </script>
+</body>
+
+</html>

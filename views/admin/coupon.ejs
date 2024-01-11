@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #couponTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #couponTable th,
+        #couponTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #couponTable tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #couponTable th {
+            background-color: #3d423d;
+            color: white;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="content">
+        <h1>Coupon List</h1>
+
+        <table id="couponTable">
+            <tr>
+                <th>Code</th>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Min Order</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Expiry Date</th>
+            </tr>
+            <!-- Coupons will be added here -->
+        </table>
+    </div>
+    <script>
+        // Fetch the coupons from the API
+        fetch('http://localhost:3000/admin/getCouponList')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Get the coupon table
+                var table = document.getElementById('couponTable');
+
+                // Loop through the coupons and add them to the table
+                data.coupons.forEach(coupon => {
+                    var row = table.insertRow(-1);
+                    row.insertCell(0).innerText = coupon.code;
+                    row.insertCell(1).innerText = coupon.type;
+                    row.insertCell(2).innerText = coupon.value;
+                    row.insertCell(3).innerText = coupon.minOrder;
+                    row.insertCell(4).innerText = coupon.quantity;
+                    row.insertCell(5).innerText = coupon.status;
+                    row.insertCell(6).innerText = new Date(coupon.expiryDate).toLocaleDateString();
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
+</body>
+
+</html>
